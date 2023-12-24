@@ -8,14 +8,21 @@ import (
 	"net/http"
 )
 
+type Config struct {
+	BaseURL  string
+	Index    string
+	Username string
+	Password string
+}
+
 // using the ZincSearch API to create a document and add it to the index
-func CreateDocument(bodyQuery []byte, index string) {
-	requestURL := fmt.Sprintf("http://localhost:%d/api/%s/_doc", 4080, index)
+func CreateDocument(bodyQuery []byte, config Config) {
+	requestURL := fmt.Sprintf("%s/api/%s/_doc", config.BaseURL, config.Index)
 	req, err := http.NewRequest("POST", requestURL, bytes.NewBuffer(bodyQuery))
 	if err != nil {
 		log.Fatal(err)
 	}
-	req.SetBasicAuth("admin", "Complexpass#123")
+	req.SetBasicAuth(config.Username, config.Password)
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := http.DefaultClient.Do(req)

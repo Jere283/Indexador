@@ -140,6 +140,13 @@ func isDirectory(path string) bool {
 }
 
 func main() {
+	config := zinc.Config{
+		BaseURL:  "http://localhost:4080",
+		Index:    "finalIndex0.2",
+		Username: "admin",
+		Password: "Complexpass#123",
+	}
+
 	//CPU  and memory Profiling
 	cpuProfile := prof.StartCPUProfile()
 	defer prof.StopCpuProfile(cpuProfile)
@@ -164,7 +171,7 @@ func main() {
 				for i := 0; i < len(files); i++ {
 					filePath := filesPath + "/" + files[i]
 					bodyQuery := ConvertEmailFileToJson(filePath)
-					zinc.CreateDocument(bodyQuery, "finalIndex0.1")
+					zinc.CreateDocument(bodyQuery, config)
 				}
 			}
 			//if the file is not a directory it will read the email file
