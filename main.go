@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// We create a struct that contains the structore of the JSON we will send to zincsearch
+// We create a struct that contains the structure of the JSON we will send to zincsearch
 type Email struct {
 	MessageID               string `json:"message_id"`
 	Date                    string `json:"date"`
@@ -40,6 +40,7 @@ func listFolder(folder_path string) []string {
 		log.Fatal(err)
 	}
 
+	//We save all the files that were found in an array
 	for _, file := range files {
 		files_list = append(files_list, file.Name()) //we access the filenames using file.Name()
 	}
@@ -48,6 +49,7 @@ func listFolder(folder_path string) []string {
 	return files_list
 }
 
+// This function will return a Email object which is the structure of the Json we will send
 func StructureTheData(key string, value string, emailStruct Email) Email {
 	switch key {
 	case "message-id":
@@ -88,17 +90,17 @@ func StructureTheData(key string, value string, emailStruct Email) Email {
 func ConvertEmailFileToJson(filePath string) []byte {
 	var body string
 	var emailStructure Email
-
+	//We read the email file
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	defer file.Close()
-
+	// We read the file line by line
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
+		//if the line is "" this indicates the start of the email body so it will break the loop
 		if line == "" {
 			break
 		}
@@ -106,21 +108,21 @@ func ConvertEmailFileToJson(filePath string) []byte {
 		if len(parts) == 2 {
 			key := strings.ToLower(parts[0])
 			value := parts[1]
-
+			// it will create a Email object
 			emailStructure = StructureTheData(key, value, emailStructure)
 		}
 
 	}
+	//This will add the body to the email object that was created before
 	for scanner.Scan() {
 		line := scanner.Text()
 		body += line
 	}
-	body = strings.Replace(body, "  ", " ", -1)
+	body = strings.Replace(body, "  ", " ", -1) // this line is just used to fix the double space that is added
 	emailStructure.Body = body
 
 	// Convert the struct to a json using the json.MarshalIndent
-
-	jsonDocument, err := json.MarshalIndent(emailStructure, "", "  ")
+	jsonDocument, err := json.MarshalIndent(emailStructure, "", "  ") //create the JsonObject which is a byte[]
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -128,6 +130,7 @@ func ConvertEmailFileToJson(filePath string) []byte {
 	return jsonDocument
 }
 
+// Check if the file that was found is a directory
 func isDirectory(path string) bool {
 	fileInfo, err := os.Stat(path)
 	if err != nil {
@@ -137,22 +140,24 @@ func isDirectory(path string) bool {
 }
 
 func main() {
+	//CPU  and memory Profiling
 	cpuProfile := prof.StartCPUProfile()
 	defer prof.StopCpuProfile(cpuProfile)
 
 	memoryProfile := prof.StartMemoryProfile()
 	defer prof.StopMemoryProfile(memoryProfile)
-
+	//maildir path
 	var path string = "C:/Users/jerem/OneDrive/Escritorio/proyecto/enron_mail_20110402/maildir2"
-	employees := listFolder(path)
+	employees := listFolder(path) // list the folders which have the people's names
 
+	//TODO: Improve this repetitive code
 	for i := 0; i < len(employees); i++ {
 		mailPath := path + "/" + employees[i]
-		mailFolders := listFolder(mailPath)
+		mailFolders := listFolder(mailPath) // list the subfolder of each employee
 
 		for i := 0; i < len(mailFolders); i++ {
-			filesPath := mailPath + "/" + mailFolders[i]
-
+			filesPath := mailPath + "/" + mailFolders[i] // the path of the email files
+			//check if the filespath is a directory to avoid issues
 			if isDirectory(filesPath) {
 				files := listFolder(filesPath)
 
@@ -162,9 +167,8 @@ func main() {
 					zinc.CreateDocument(bodyQuery, "finalIndex0.1")
 				}
 			}
+			//if the file is not a directory it will read the email file
 
 		}
-
 	}
-
 }
