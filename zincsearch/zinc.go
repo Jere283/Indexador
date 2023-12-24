@@ -8,8 +8,8 @@ import (
 	"net/http"
 )
 
+// using the ZincSearch API to create a document and add it to the index
 func CreateDocument(bodyQuery []byte, index string) {
-
 	requestURL := fmt.Sprintf("http://localhost:%d/api/%s/_doc", 4080, index)
 	req, err := http.NewRequest("POST", requestURL, bytes.NewBuffer(bodyQuery))
 	if err != nil {
