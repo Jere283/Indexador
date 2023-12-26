@@ -12,20 +12,21 @@ import (
 
 // We create a struct that contains the structure of the JSON we will send to zincsearch
 type Email struct {
-	MessageID               string `json:"message_id"`
-	Date                    string `json:"date"`
-	From                    string `json:"from"`
-	To                      string `json:"to"`
-	Subject                 string `json:"subject"`
-	MimeVersion             string `json:"mime_version"`
-	ContentType             string `json:"content_type"`
-	ContentTransferEncoding string `json:"content_transfer_encoding"`
-	ToName                  string `json:"to_name"`
-	CC                      string `json:"cc"`
-	BCC                     string `json:"bcc"`
-	Folder                  string `json:"folder"`
-	Origin                  string `json:"origin"`
-	FileName                string `json:"file_name"`
+	MessageID               string `json:"Message_id"`
+	Date                    string `json:"Date"`
+	From                    string `json:"From"`
+	To                      string `json:"To"`
+	Subject                 string `json:"Subject"`
+	MimeVersion             string `json:"Mime_version"`
+	ContentType             string `json:"Content_type"`
+	ContentTransferEncoding string `json:"Content_transfer_encoding"`
+	X_from                  string `json:"X-from"`
+	X_to                    string `json:"X-to"`
+	X_CC                    string `json:"X-cc"`
+	X_BCC                   string `json:"X-bcc"`
+	X_folder                string `json:"X-folder"`
+	X_origin                string `json:"X-origin"`
+	X_fileName              string `json:"X-file_name"`
 	Body                    string `json:"body"`
 }
 
@@ -69,19 +70,19 @@ func StructureTheData(key string, value string, emailStruct Email) Email {
 	case "content-transfer-encoding":
 		emailStruct.ContentTransferEncoding = value
 	case "x-from":
-		emailStruct.From = value
+		emailStruct.X_from = value
 	case "x-to":
-		emailStruct.ToName = value
+		emailStruct.X_to = value
 	case "x-cc":
-		emailStruct.CC = value
+		emailStruct.X_CC = value
 	case "x-bcc":
-		emailStruct.BCC = value
+		emailStruct.X_BCC = value
 	case "x-folder":
-		emailStruct.Folder = value
+		emailStruct.X_folder = value
 	case "x-origin":
-		emailStruct.Origin = value
+		emailStruct.X_origin = value
 	case "x-filename":
-		emailStruct.FileName = value
+		emailStruct.X_fileName = value
 	}
 
 	return emailStruct
@@ -142,7 +143,7 @@ func isDirectory(path string) bool {
 func main() {
 	config := zinc.Config{
 		BaseURL:  "http://localhost:4080",
-		Index:    "finalIndex0.2",
+		Index:    "finalIndex0.3",
 		Username: "admin",
 		Password: "Complexpass#123",
 	}
@@ -154,7 +155,7 @@ func main() {
 	memoryProfile := prof.StartMemoryProfile()
 	defer prof.StopMemoryProfile(memoryProfile)
 	//maildir path
-	var path string = "C:/Users/jerem/OneDrive/Escritorio/proyecto/enron_mail_20110402/maildir2"
+	var path string = "C:/Users/jerem/OneDrive/Escritorio/proyecto/enron_mail_20110402/maildir"
 	employees := listFolder(path) // list the folders which have the people's names
 
 	//TODO: Improve this repetitive code
