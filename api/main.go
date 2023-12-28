@@ -17,8 +17,8 @@ func main() {
 		})
 	})
 
-	v1.GET("/search", func(c *gin.Context) {
-		searchTerm := c.Query("word")
+	v1.GET("/search/:word", func(c *gin.Context) {
+		searchTerm := c.Param("word")
 		if searchTerm == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Query parameter 'word' is required"})
 			return
