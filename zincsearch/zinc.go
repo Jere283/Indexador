@@ -24,17 +24,22 @@ type Hit struct {
 	ID     string  `json:"_id"`
 	Score  float64 `json:"_score"`
 	Source struct {
-		Timestamp  string `json:"@timestamp"`
-		Athlete    string `json:"Athlete"`
-		City       string `json:"City"`
-		Country    string `json:"Country"`
-		Discipline string `json:"Discipline"`
-		Event      string `json:"Event"`
-		Gender     string `json:"Gender"`
-		Medal      string `json:"Medal"`
-		Season     string `json:"Season"`
-		Sport      string `json:"Sport"`
-		Year       int    `json:"Year"`
+		MessageID               string `json:"Message_id"`
+		Date                    string `json:"Date"`
+		From                    string `json:"From"`
+		To                      string `json:"To"`
+		Subject                 string `json:"Subject"`
+		MimeVersion             string `json:"Mime_version"`
+		ContentType             string `json:"Content_type"`
+		ContentTransferEncoding string `json:"Content_transfer_encoding"`
+		X_from                  string `json:"X-from"`
+		X_to                    string `json:"X-to"`
+		X_CC                    string `json:"X-cc"`
+		X_BCC                   string `json:"X-bcc"`
+		X_folder                string `json:"X-folder"`
+		X_origin                string `json:"X-origin"`
+		X_fileName              string `json:"X-file_name"`
+		Body                    string `json:"body"`
 	} `json:"_source"`
 }
 
@@ -80,7 +85,7 @@ func SearchDocument(word string) HitsResponse {
         "max_results": 20,
         "_source": []
     }`, word)
-	req, err := http.NewRequest("POST", "http://localhost:4080/api/olympics/_search", strings.NewReader(query))
+	req, err := http.NewRequest("POST", "http://localhost:4080/api/finalIndex0.3/_search", strings.NewReader(query))
 	if err != nil {
 		log.Fatal(err)
 	}
