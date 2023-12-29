@@ -8,9 +8,18 @@
   >
     <!-- Modal content -->
     <div class="modal-content">
-      <button @click="closeModal" class="close-button">X</button>
+      <button
+        @click="closeModal"
+        class="absolute top-10 right-10 cursor-pointer"
+      >
+        X
+      </button>
       <!--full content -->
-      <p class="modal-text">{{ content }}</p>
+      <p
+        class="whitespace-pre-wrap whitespace-pre-wrap whitespace-moz-pre-wrap whitespace-pre-wrap whitespace-o-pre-wrap break-words"
+      >
+        {{ content }}
+      </p>
     </div>
   </div>
 </template>
@@ -33,20 +42,5 @@ export default {
   margin: 50px auto;
   max-width: 500px;
   position: relative;
-}
-
-.close-button {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  cursor: pointer;
-}
-
-.modal-text {
-  white-space: pre-wrap; /* CSS3 */
-  white-space: -moz-pre-wrap; /* Firefox */
-  white-space: -pre-wrap; /* Opera <7 */
-  white-space: -o-pre-wrap; /* Opera 7 */
-  word-wrap: break-word; /* IE */
 }
 </style>
