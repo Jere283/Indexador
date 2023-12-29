@@ -17,24 +17,28 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, watch } from 'vue';
 import axios from 'axios';
 
 export default {
-  setup() {
+  props: ['searchTerm'],
+  setup(props) {
     const searchResults = ref([]);
 
-    const searchUSA = async () => {
+    const search = async (term) => {
       try {
-        const response = await axios.get('http://localhost:3000/api/v1/search/usa');
+        const response = await axios.get(`http://localhost:3000/api/v1/search/${term}`);
         searchResults.value = response.data.hits.hits;
-        console.log(searchResults.value[0]._index);
       } catch (error) {
         console.error('Error fetching search results:', error);
       }
     };
 
-    onMounted(searchUSA);
+    watch(() => props.searchTerm, (newVal) => {
+      if (newVal && newVal.length > 0) {
+        search(newVal);
+      }
+    });
 
     return { searchResults };
   },

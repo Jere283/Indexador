@@ -13,19 +13,24 @@
         class="peer h-full w-full outline-none text-sm text-gray-700 pr-2"
         type="text"
         id="search"
+        v-model="searchTerm"
         placeholder="Search something.." /> 
     </div>
   </div>
 
   <div id="results">
-      <ResultItem />
+    <ResultItem :searchTerm="searchTerm" />
     </div>
 </div>
 
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import ResultItem from '@/components/ResultItem.vue';
+
+let searchTerm = ref('');
+
 </script>
 
 <style>
