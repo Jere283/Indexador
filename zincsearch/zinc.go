@@ -82,7 +82,7 @@ func SearchDocument(word string) HitsResponse {
             "end_time": "2023-12-27T15:28:31.894Z"
         },
         "from": 0,
-        "max_results": 20,
+        "max_results": 50,
         "_source": []
     }`, word)
 	req, err := http.NewRequest("POST", "http://localhost:4080/api/finalIndex0.3/_search", strings.NewReader(query))

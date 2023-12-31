@@ -1,7 +1,7 @@
 <template>
   <div class="mt-5">
     <div class="px-4 sm:px-8 max-w-5xl m-auto">
-      <h1 class="text-center font-semibold text-sm">
+      <h1 class="text-white text-center font-semibold text-sm">
         Search results: {{ searchResults.length }}
       </h1>
       <ul class="border border-transparent rounded overflow-hidden shadow-md">
@@ -9,7 +9,7 @@
           v-for="result in searchResults"
           :key="result._id"
           @click="openModal(result)"
-          class="mt-4 px-4 py-2 bg-white hover:bg-sky-100 hover:text-sky-900 border-b last:border-none border-transparent rounded transition-all duration-300 ease-in-out"
+          class="mt-4 px-4 py-2 bg-blue-gray-800 hover:bg-sky-50 hover:text-sky-900 border-b last:border-none border-transparent rounded transition-all duration-300 ease-in-out"
         >
           <strong>From:</strong> {{ result._source.From }} <strong>To:</strong>
           {{ result._source.To }} <strong>Subject:</strong>
@@ -52,8 +52,9 @@ export default {
     };
 
     const openModal = (result) => {
+      console.log(result);
       showModal.value = true;
-      modalContent.value = JSON.stringify(result._source, null, 2);
+      modalContent.value = result._source;
     };
 
     watch(
@@ -69,3 +70,10 @@ export default {
   },
 };
 </script>
+
+<style>
+li {
+  background-color: #012143 !important;
+  color: #ffffff;
+}
+</style>
