@@ -89,41 +89,48 @@ func StructureTheData(key string, value string, emailStruct Email) Email {
 }
 
 func ConvertEmailFileToJson(filePath string) []byte {
-	var body string
+	var bodyLines []string
 	var emailStructure Email
-	//We read the email file
+	var bodyStarted bool
+
+	// We read the email file
 	file, err := os.Open(filePath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
+
 	// We read the file line by line
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		//if the line is "" this indicates the start of the email body so it will break the loop
+
+		// If the line is empty, it indicates the start of the email body
 		if line == "" {
-			break
-		}
-		parts := strings.SplitN(line, ": ", 2)
-		if len(parts) == 2 {
-			key := strings.ToLower(parts[0])
-			value := parts[1]
-			// it will create a Email object
-			emailStructure = StructureTheData(key, value, emailStructure)
+			bodyStarted = true
+			continue
 		}
 
+		if bodyStarted {
+			// Store body lines in a slice
+			bodyLines = append(bodyLines, line)
+		} else {
+			// Parse email headers
+			parts := strings.SplitN(line, ": ", 2)
+			if len(parts) == 2 {
+				key := strings.ToLower(parts[0])
+				value := parts[1]
+				// Create an Email object
+				emailStructure = StructureTheData(key, value, emailStructure)
+			}
+		}
 	}
-	//This will add the body to the email object that was created before
-	for scanner.Scan() {
-		line := scanner.Text()
-		body += line
-	}
-	body = strings.Replace(body, "  ", " ", -1) // this line is just used to fix the double space that is added
-	emailStructure.Body = body
 
-	// Convert the struct to a json using the json.MarshalIndent
-	jsonDocument, err := json.MarshalIndent(emailStructure, "", "  ") //create the JsonObject which is a byte[]
+	// Concatenate body lines with line breaks
+	emailStructure.Body = strings.Join(bodyLines, "\n")
+
+	// Convert the struct to JSON using json.MarshalIndent
+	jsonDocument, err := json.MarshalIndent(emailStructure, "", "  ")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -143,7 +150,7 @@ func isDirectory(path string) bool {
 func main() {
 	config := zinc.Config{
 		BaseURL:  "http://localhost:4080",
-		Index:    "finalIndex0.3",
+		Index:    "EnronEmailDataset1.0",
 		Username: "admin",
 		Password: "Complexpass#123",
 	}
@@ -174,9 +181,11 @@ func main() {
 					bodyQuery := ConvertEmailFileToJson(filePath)
 					zinc.CreateDocument(bodyQuery, config)
 				}
-			}
-			//if the file is not a directory it will read the email file
 
+			} else {
+				bodyQuery := ConvertEmailFileToJson(filesPath) //if the file is not a directory it will read the email file
+				zinc.CreateDocument(bodyQuery, config)
+			}
 		}
 	}
 }
