@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"runtime"
 	"strings"
 	"sync"
 )
@@ -31,6 +32,8 @@ type Email struct {
 	X_fileName              string `json:"X-file_name"`
 	Body                    string `json:"body"`
 }
+
+var maxWorkers = runtime.NumCPU()
 
 // This function will list all the folders and files insider the path we send
 // This will be used to list all the email files and all the subfolders inside the dataset
@@ -145,18 +148,35 @@ func ProcessFiles(filePaths []string, dir string) [][]byte {
 	var wg sync.WaitGroup
 	var emailJsons [][]byte
 	var m sync.Mutex
+	workerCh := make(chan struct{}, maxWorkers)
 
 	for _, filePath := range filePaths {
 		wg.Add(1)
 
 		go func(fp string) {
 			defer wg.Done()
-			fulldir := path.Join(dir, fp)
-			emailJson := ConvertEmailFileToJson(fulldir)
 
-			m.Lock()
-			emailJsons = append(emailJsons, emailJson)
-			m.Unlock()
+			workerCh <- struct{}{}
+			defer func() { <-workerCh }()
+
+			fulldir := path.Join(dir, fp)
+			if isDirectory(fulldir) {
+				m.Lock()
+				files := listFolder(fulldir)
+				m.Unlock()
+
+				// Recursive call with a worker
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					emailJsons = append(emailJsons, ProcessFiles(files, fulldir)...)
+				}()
+			} else {
+				emailJson := ConvertEmailFileToJson(fulldir)
+				m.Lock()
+				emailJsons = append(emailJsons, emailJson)
+				m.Unlock()
+			}
 		}(filePath)
 	}
 
@@ -177,7 +197,7 @@ func isDirectory(path string) bool {
 func main() {
 	config := zinc.Config{
 		BaseURL:  "http://localhost:4080",
-		Index:    "testV2.6",
+		Index:    "EnronDataSetV2.1",
 		Username: "admin",
 		Password: "Complexpass#123",
 	}
@@ -207,6 +227,9 @@ func main() {
 				emailJsons := ProcessFiles(files, filesPath)
 				allEmailJsons = append(allEmailJsons, emailJsons...)
 
+			} else {
+				emailJson := ConvertEmailFileToJson(filesPath)
+				allEmailJsons = append(allEmailJsons, emailJson)
 			}
 
 		}
