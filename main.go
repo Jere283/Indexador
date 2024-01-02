@@ -7,7 +7,9 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"path"
 	"strings"
+	"sync"
 )
 
 // We create a struct that contains the structure of the JSON we will send to zincsearch
@@ -53,35 +55,35 @@ func listFolder(folder_path string) []string {
 // This function will return a Email object which is the structure of the Json we will send
 func StructureTheData(key string, value string, emailStruct Email) Email {
 	switch key {
-	case "message-id":
+	case "Message-ID":
 		emailStruct.MessageID = value
-	case "date":
+	case "Date":
 		emailStruct.Date = value
-	case "from":
+	case "From":
 		emailStruct.From = value
-	case "to":
+	case "To":
 		emailStruct.To = value
-	case "subject":
+	case "Subject":
 		emailStruct.Subject = value
-	case "mime-version":
+	case "Mime-Version":
 		emailStruct.MimeVersion = value
-	case "content-type":
+	case "Content-Type":
 		emailStruct.ContentType = value
-	case "content-transfer-encoding":
+	case "Content-Transfer-Encoding":
 		emailStruct.ContentTransferEncoding = value
-	case "x-from":
+	case "X-From":
 		emailStruct.X_from = value
-	case "x-to":
+	case "X-To":
 		emailStruct.X_to = value
-	case "x-cc":
+	case "X-cc":
 		emailStruct.X_CC = value
-	case "x-bcc":
+	case "X-bcc":
 		emailStruct.X_BCC = value
-	case "x-folder":
+	case "X-Folder":
 		emailStruct.X_folder = value
-	case "x-origin":
+	case "X-Origin":
 		emailStruct.X_origin = value
-	case "x-filename":
+	case "X-FileName":
 		emailStruct.X_fileName = value
 	}
 
@@ -89,7 +91,7 @@ func StructureTheData(key string, value string, emailStruct Email) Email {
 }
 
 func ConvertEmailFileToJson(filePath string) []byte {
-	var bodyLines []string
+	var bodyLines strings.Builder
 	var emailStructure Email
 	var bodyStarted bool
 
@@ -113,12 +115,13 @@ func ConvertEmailFileToJson(filePath string) []byte {
 
 		if bodyStarted {
 			// Store body lines in a slice
-			bodyLines = append(bodyLines, line)
+			bodyLines.WriteString(line)
+			bodyLines.WriteString("\n")
 		} else {
 			// Parse email headers
 			parts := strings.SplitN(line, ": ", 2)
 			if len(parts) == 2 {
-				key := strings.ToLower(parts[0])
+				key := parts[0]
 				value := parts[1]
 				// Create an Email object
 				emailStructure = StructureTheData(key, value, emailStructure)
@@ -126,8 +129,8 @@ func ConvertEmailFileToJson(filePath string) []byte {
 		}
 	}
 
-	// Concatenate body lines with line breaks
-	emailStructure.Body = strings.Join(bodyLines, "\n")
+	// Add the body to the email structure
+	emailStructure.Body = bodyLines.String()
 
 	// Convert the struct to JSON using json.MarshalIndent
 	jsonDocument, err := json.MarshalIndent(emailStructure, "", "  ")
@@ -136,6 +139,30 @@ func ConvertEmailFileToJson(filePath string) []byte {
 	}
 
 	return jsonDocument
+}
+
+func ProcessFiles(filePaths []string, dir string) [][]byte {
+	var wg sync.WaitGroup
+	var emailJsons [][]byte
+	var m sync.Mutex
+
+	for _, filePath := range filePaths {
+		wg.Add(1)
+
+		go func(fp string) {
+			defer wg.Done()
+			fulldir := path.Join(dir, fp)
+			emailJson := ConvertEmailFileToJson(fulldir)
+
+			m.Lock()
+			emailJsons = append(emailJsons, emailJson)
+			m.Unlock()
+		}(filePath)
+	}
+
+	wg.Wait()
+
+	return emailJsons
 }
 
 // Check if the file that was found is a directory
@@ -150,7 +177,7 @@ func isDirectory(path string) bool {
 func main() {
 	config := zinc.Config{
 		BaseURL:  "http://localhost:4080",
-		Index:    "EnronEmailDataset1.0",
+		Index:    "testV2.6",
 		Username: "admin",
 		Password: "Complexpass#123",
 	}
@@ -167,25 +194,24 @@ func main() {
 
 	//TODO: Improve this repetitive code
 	for i := 0; i < len(employees); i++ {
+		var allEmailJsons [][]byte
 		mailPath := path + "/" + employees[i]
 		mailFolders := listFolder(mailPath) // list the subfolder of each employee
 
-		for i := 0; i < len(mailFolders); i++ {
-			filesPath := mailPath + "/" + mailFolders[i] // the path of the email files
+		for j := 0; j < len(mailFolders); j++ {
+			filesPath := mailPath + "/" + mailFolders[j] // the path of the email files
 			//check if the filespath is a directory to avoid issues
 			if isDirectory(filesPath) {
 				files := listFolder(filesPath)
 
-				for i := 0; i < len(files); i++ {
-					filePath := filesPath + "/" + files[i]
-					bodyQuery := ConvertEmailFileToJson(filePath)
-					zinc.CreateDocument(bodyQuery, config)
-				}
+				emailJsons := ProcessFiles(files, filesPath)
+				allEmailJsons = append(allEmailJsons, emailJsons...)
 
-			} else {
-				bodyQuery := ConvertEmailFileToJson(filesPath) //if the file is not a directory it will read the email file
-				zinc.CreateDocument(bodyQuery, config)
 			}
+
+		}
+		for _, json := range allEmailJsons {
+			zinc.CreateDocument(json, config)
 		}
 	}
 }
