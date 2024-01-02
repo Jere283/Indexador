@@ -13,26 +13,6 @@ import (
 	"sync"
 )
 
-// We create a struct that contains the structure of the JSON we will send to zincsearch
-type Email struct {
-	MessageID               string `json:"Message_id"`
-	Date                    string `json:"Date"`
-	From                    string `json:"From"`
-	To                      string `json:"To"`
-	Subject                 string `json:"Subject"`
-	MimeVersion             string `json:"Mime_version"`
-	ContentType             string `json:"Content_type"`
-	ContentTransferEncoding string `json:"Content_transfer_encoding"`
-	X_from                  string `json:"X-from"`
-	X_to                    string `json:"X-to"`
-	X_CC                    string `json:"X-cc"`
-	X_BCC                   string `json:"X-bcc"`
-	X_folder                string `json:"X-folder"`
-	X_origin                string `json:"X-origin"`
-	X_fileName              string `json:"X-file_name"`
-	Body                    string `json:"body"`
-}
-
 var maxWorkers = runtime.NumCPU()
 
 // This function will list all the folders and files insider the path we send
@@ -56,7 +36,7 @@ func listFolder(folder_path string) []string {
 }
 
 // This function will return a Email object which is the structure of the Json we will send
-func StructureTheData(key string, value string, emailStruct Email) Email {
+func StructureTheData(key string, value string, emailStruct zinc.Email) zinc.Email {
 	switch key {
 	case "Message-ID":
 		emailStruct.MessageID = value
@@ -95,7 +75,7 @@ func StructureTheData(key string, value string, emailStruct Email) Email {
 
 func ConvertEmailFileToJson(filePath string) []byte {
 	var bodyLines strings.Builder
-	var emailStructure Email
+	var emailStructure zinc.Email
 	var bodyStarted bool
 
 	// We read the email file
@@ -197,7 +177,7 @@ func isDirectory(path string) bool {
 func main() {
 	config := zinc.Config{
 		BaseURL:  "http://localhost:4080",
-		Index:    "EnronDataSetV2.1",
+		Index:    "minTest1",
 		Username: "admin",
 		Password: "Complexpass#123",
 	}
@@ -209,7 +189,7 @@ func main() {
 	memoryProfile := prof.StartMemoryProfile()
 	defer prof.StopMemoryProfile(memoryProfile)
 	//maildir path
-	var path string = "C:/Users/jerem/OneDrive/Escritorio/proyecto/enron_mail_20110402/maildir"
+	var path string = "C:/Users/jerem/OneDrive/Escritorio/proyecto/enron_mail_20110402/maildir3"
 	employees := listFolder(path) // list the folders which have the people's names
 
 	//TODO: Improve this repetitive code
