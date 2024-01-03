@@ -136,13 +136,13 @@ func SearchDocument(word string) HitsResponse {
         {
             "term": "%s",
             "start_time": "2021-06-02T14:28:31.894Z",
-            "end_time": "2024-01-31T15:28:31.894Z"
+            "end_time": "2028-01-31T15:28:31.894Z"
         },
         "from": 0,
         "max_results": 50,
         "_source": []
     }`, word)
-	req, err := http.NewRequest("POST", "http://localhost:4080/api/EnronEmailDataset1.0/_search", strings.NewReader(query))
+	req, err := http.NewRequest("POST", "http://localhost:4080/api/EnronDataSetV2.5/_search", strings.NewReader(query))
 	if err != nil {
 		log.Fatal(err)
 	}
