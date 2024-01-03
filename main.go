@@ -1,8 +1,6 @@
 package main
 
 import (
-	prof "Indexador/profiling"
-	zinc "Indexador/zincsearch"
 	"bufio"
 	"log"
 	"os"
@@ -10,6 +8,9 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+
+	prof "github.com/Jere283/ZincSearch-Indexer-WebSearchTool/profiling"
+	zinc "github.com/Jere283/ZincSearch-Indexer-WebSearchTool/zincsearch"
 )
 
 var maxWorkers = runtime.NumCPU()
@@ -170,7 +171,7 @@ func isDirectory(path string) bool {
 func main() {
 	config := zinc.Config{
 		BaseURL:  "http://localhost:4080",
-		Index:    "EnronDataSetV2.5",
+		Index:    "EnronDataSetV2.5.1",
 		Username: "admin",
 		Password: "Complexpass#123",
 	}

@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	zinc "Indexador/zincsearch"
+	zinc "github.com/Jere283/ZincSearch-Indexer-WebSearchTool/zincsearch"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
