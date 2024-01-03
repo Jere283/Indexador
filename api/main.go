@@ -1,44 +1,54 @@
 package main
 
 import (
-	zinc "Indexador/zincsearch"
+	"encoding/json"
+	"log"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	zinc "Indexador/zincsearch"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 )
 
 func main() {
-	r := gin.Default()
+	r := chi.NewRouter()
 
-	r.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusNoContent)
-			return
-		}
-		c.Next()
+	// Basic CORS
+	cors := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Origin", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token, Authorization"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	})
+	r.Use(cors.Handler)
 
-	v1 := r.Group("/api/v1")
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte(`{"message":"Welcome to the Enron-Email Index ZincSearch API v1"}`))
+		})
 
-	v1.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Welcome to the Enron-Email Index ZincSearch API v1",
+		r.Get("/search/{word}", func(w http.ResponseWriter, r *http.Request) {
+			searchTerm := chi.URLParam(r, "word")
+			if searchTerm == "" {
+				http.Error(w, `{"error":"Query parameter 'word' is required"}`, http.StatusBadRequest)
+				return
+			}
+			result := zinc.SearchDocument(searchTerm)
+			json, err := json.Marshal(result)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Write(json)
 		})
 	})
 
-	v1.GET("/search/:word", func(c *gin.Context) {
-		searchTerm := c.Param("word")
-		if searchTerm == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Query parameter 'word' is required"})
-			return
-		}
-		result := zinc.SearchDocument(searchTerm)
-		c.JSON(http.StatusAccepted, result)
+	// Serve Vue.js dist folder
+	fs := http.FileServer(http.Dir("C:/Users/jerem/Desktop/Go workspace/src/Indexador/api/dist"))
+	r.Handle("/*", fs)
 
-	})
-
-	r.Run(":3000")
+	log.Println("Server is up and running on port 3000")
+	http.ListenAndServe(":3000", r)
 }

@@ -17,6 +17,31 @@ type Config struct {
 	Password string
 }
 
+// We create a struct that contains the structure of the JSON we will send to zincsearch
+type Email struct {
+	MessageID               string `json:"Message_id"`
+	Date                    string `json:"Date"`
+	From                    string `json:"From"`
+	To                      string `json:"To"`
+	Subject                 string `json:"Subject"`
+	MimeVersion             string `json:"Mime_version"`
+	ContentType             string `json:"Content_type"`
+	ContentTransferEncoding string `json:"Content_transfer_encoding"`
+	X_from                  string `json:"X-from"`
+	X_to                    string `json:"X-to"`
+	X_CC                    string `json:"X-cc"`
+	X_BCC                   string `json:"X-bcc"`
+	X_folder                string `json:"X-folder"`
+	X_origin                string `json:"X-origin"`
+	X_fileName              string `json:"X-file_name"`
+	Body                    string `json:"body"`
+}
+
+type BulkDocument struct {
+	Index   string  `json:index`
+	Records []Email `json:records`
+}
+
 // the structure of the API response from the searchDocument() function
 type Hit struct {
 	Index  string  `json:"_index"`
@@ -53,6 +78,38 @@ type HitsResponse struct {
 func CreateDocument(bodyQuery []byte, config Config) {
 	requestURL := fmt.Sprintf("%s/api/%s/_doc", config.BaseURL, config.Index)
 	req, err := http.NewRequest("POST", requestURL, bytes.NewBuffer(bodyQuery))
+	if err != nil {
+		log.Fatal(err)
+	}
+	req.SetBasicAuth(config.Username, config.Password)
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer res.Body.Close()
+	log.Println(res.StatusCode)
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(string(body))
+}
+
+func BulkCreateDocument(emails []Email, config Config) {
+	requestURL := fmt.Sprintf("%s/api/_bulkv2", config.BaseURL)
+	bulkData := BulkDocument{
+		Index:   config.Index,
+		Records: emails,
+	}
+
+	jsonBody, err := json.Marshal(bulkData)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req, err := http.NewRequest("POST", requestURL, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		log.Fatal(err)
 	}
