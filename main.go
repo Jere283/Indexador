@@ -4,7 +4,6 @@ import (
 	prof "Indexador/profiling"
 	zinc "Indexador/zincsearch"
 	"bufio"
-	"encoding/json"
 	"log"
 	"os"
 	"path"
@@ -73,7 +72,7 @@ func StructureTheData(key string, value string, emailStruct zinc.Email) zinc.Ema
 	return emailStruct
 }
 
-func ConvertEmailFileToJson(filePath string) []byte {
+func ConvertEmailFileToJson(filePath string) zinc.Email {
 	var bodyLines strings.Builder
 	var emailStructure zinc.Email
 	var bodyStarted bool
@@ -115,18 +114,12 @@ func ConvertEmailFileToJson(filePath string) []byte {
 	// Add the body to the email structure
 	emailStructure.Body = bodyLines.String()
 
-	// Convert the struct to JSON using json.MarshalIndent
-	jsonDocument, err := json.MarshalIndent(emailStructure, "", "  ")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return jsonDocument
+	return emailStructure
 }
 
-func ProcessFiles(filePaths []string, dir string) [][]byte {
+func ProcessFiles(filePaths []string, dir string) []zinc.Email {
 	var wg sync.WaitGroup
-	var emailJsons [][]byte
+	var emails []zinc.Email
 	var m sync.Mutex
 	workerCh := make(chan struct{}, maxWorkers)
 
@@ -149,12 +142,12 @@ func ProcessFiles(filePaths []string, dir string) [][]byte {
 				wg.Add(1)
 				go func() {
 					defer wg.Done()
-					emailJsons = append(emailJsons, ProcessFiles(files, fulldir)...)
+					emails = append(emails, ProcessFiles(files, fulldir)...)
 				}()
 			} else {
-				emailJson := ConvertEmailFileToJson(fulldir)
+				email := ConvertEmailFileToJson(fulldir)
 				m.Lock()
-				emailJsons = append(emailJsons, emailJson)
+				emails = append(emails, email)
 				m.Unlock()
 			}
 		}(filePath)
@@ -162,7 +155,7 @@ func ProcessFiles(filePaths []string, dir string) [][]byte {
 
 	wg.Wait()
 
-	return emailJsons
+	return emails
 }
 
 // Check if the file that was found is a directory
@@ -177,7 +170,7 @@ func isDirectory(path string) bool {
 func main() {
 	config := zinc.Config{
 		BaseURL:  "http://localhost:4080",
-		Index:    "minTest1",
+		Index:    "EnronDataSetV2.5",
 		Username: "admin",
 		Password: "Complexpass#123",
 	}
@@ -189,12 +182,12 @@ func main() {
 	memoryProfile := prof.StartMemoryProfile()
 	defer prof.StopMemoryProfile(memoryProfile)
 	//maildir path
-	var path string = "C:/Users/jerem/OneDrive/Escritorio/proyecto/enron_mail_20110402/maildir3"
+	var path string = "C:/Users/jerem/OneDrive/Escritorio/proyecto/enron_mail_20110402/maildir"
 	employees := listFolder(path) // list the folders which have the people's names
 
 	//TODO: Improve this repetitive code
 	for i := 0; i < len(employees); i++ {
-		var allEmailJsons [][]byte
+		var allEmailJsons []zinc.Email
 		mailPath := path + "/" + employees[i]
 		mailFolders := listFolder(mailPath) // list the subfolder of each employee
 
@@ -213,8 +206,6 @@ func main() {
 			}
 
 		}
-		for _, json := range allEmailJsons {
-			zinc.CreateDocument(json, config)
-		}
+		zinc.BulkCreateDocument(allEmailJsons, config)
 	}
 }
