@@ -2,7 +2,39 @@
 
 ## Project Overview
 
-The project is a combination of an Indexer and an API that hosts a Vue.js dist app for searching through indexed emails. The Indexer is responsible for crawling through a specified directory structure, extracting information from email files, and indexing them using the ZincSearch API. The API, built with Go and Chi, allows users to search for emails based on specific keywords.
+The project is a combination of an Indexer and an API that allows you to search over the indexed files and hosts a Vue.js application that works as a User Interface to search over the indexed files. The Indexer is responsible for crawling through a specified directory structure, extracting information from the email files, and indexing them using the ZincSearch API. My API, built with Go and Chi, allows users to search for emails based on specific keywords.
+
+### Technologies used in this project
+* [Go 1.21.5 for the backend](https://go.dev)
+* [Go-Chi/V5 for the API](https://github.com/go-chi/chi)
+* [Vue 3 for the frontend](https://vuejs.org)
+* [ZincSearch as the database](https://github.com/zincsearch/zincsearch)
+* [ZincSearch API to interact with the database](https://zincsearch-docs.zinc.dev)
+
+### Project Structure
+
+- ZincSearch-Indexer-WebSearchTool
+  - api
+    - main.go     ## Api main source code, search endpoint and static serve of the dist folder (the build of the vue app)
+    - dist
+    - go.mod
+    - go.sun
+    - api.exe     ## Api executable file, hosted in port 3000
+  - frontend ## vue 3 source code
+  - profiling 
+    - proftests     ## folder with the profiling tests of indexer V1 and V2 
+    - go.mod
+    - profiling.go     # go package with function to control the profiling profiles
+  - zincsearch
+    - go.mod
+    - zinc.go     ## go package with functions to interact with the zincsearch API (createDocument, BulkCreateDocuments, Search)
+  - go.mod
+  - go.work
+  - go.work.sum
+  - improvementsV2.md     ## Document with information about the improvements in v1 and v2
+  - Indexer.exe     ## Indexer executable file 
+  - main.go     ## Indexer main source code
+  - README.md
 
 ## Indexer (Go Aplication)
 
@@ -36,6 +68,9 @@ The API is a Go application built with the Chi router. It provides basic CORS su
 ### Serving a Vue.js App
 
 The API also serves a Vue.js dist folder to allow users to interact with the indexed data visually.
+
+![image](https://github.com/Jere283/ZincSearch-Indexer-WebSearchTool/assets/111548280/e6147dc3-a62f-40b3-bf28-d336900c076f)
+
 
 ### Dependencies
 
