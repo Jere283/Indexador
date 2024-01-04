@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This document provides a detailed comparison between two versions of a Go program designed to index and upload emails to ZincSearch. The two versions, referred to as V1 and V2, differ significantly in terms of structure, concurrency, performance, and overall code organization.
+This document provides a detailed comparison between two versions of a Go program designed to index and upload emails to ZincSearch. The two versions, referred to as V1 and V2, differ significantly in terms of structure, concurrency, performance, and overall code organization. You can see the V1 e in the branch called IndexerV1
 
 ### Overall Structure
 
@@ -61,16 +61,6 @@ Document Creation: Documents are created and uploaded one at a time.
 #### V2:
 
 Bulk Document Creation: Introduces a BulkCreateDocument function for efficient bulk creation of documents, enhancing performance.
-
-### Variable Naming
-
-#### V1:
-
-Variable Naming: Mix of lowercase and underscores (Message_id).
-
-#### V2:
-
-Variable Naming: Consistent camel case (MessageID), following standard Go naming conventions.
 
 ## Conclusion
 
