@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-The project is a combination of an Indexer and an API that allows you to search over the indexed files and hosts a Vue.js application that works as a User Interface to search over the indexed files. The Indexer is responsible for crawling through a specified directory structure, extracting information from the email files, and indexing them using the ZincSearch API. My API, built with Go and Chi, allows users to search for emails based on specific keywords.
+The project is a combination of an Indexer and an API that hosts a Vue application which works as a User Interface to search over the indexed files. The Indexer is responsible for crawling through a specified directory structure, extracting information from the email files, and indexing them using the ZincSearch API. My API, built with Go and Chi, allows users to search for emails based on specific keywords.
 
 ### Technologies used in this project
 * [Go 1.21.5 for the backend](https://go.dev)
